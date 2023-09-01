@@ -1,0 +1,58 @@
+{
+    "admin_input:label" : "RHD STORAGE",
+    "admin_command:name:create.new_storage" : "buatgudang",
+    "admin_command:label:create.new_storage" : "Buat Gudang Baru",
+    "admin_target.storage:label_delete" : "Hapus Gudang",
+
+    "drawtext_label:lasers:confirm" : "Tekan [E] untuk membuat gudang",
+    "drawtext_label:lasers:cancel" : "Tekan [X] untuk membatalkan",
+
+    "input.new_storage:label" : "Label Gudang",
+    "input.new_storage:forsale_label" : "DI JUAL",
+    "input.new_storage:rent_price" : "Harga Sewa",
+    "input.new_storage:slots" : "Jumlah Slot",
+    "input.new_storage:weight" : "Jumlah Kapasitas",
+    "input.new_storage:sale_price" : "Harga Jual",
+
+    "input.rent_storage:label" : "Ingin menyewa berapa hari?",
+
+    "input.manage_storage.withdraw_money:label" : "Jumlah yang ingin di ambil",
+
+    "input.setting_storage.slots:label" : "Jumlah Slot",
+    "input.setting_storage.weight:label" : "Jumlah Kapasitas",
+    "input.setting_storage.label:label" : "Label Gudang",
+    "input.setting_storage.rent_price:label" : "Biaya Sewa",
+    "input.setting_storage.rent_price:desc" : "biaya sewa gudang per 1 hari",
+    "input.setting_storage.sale_price:label" : "Harga",
+
+    "alert.buy_storage:header" : "Halo %s 👋",
+    "alert.buy_storage:content" : "Gudang ini dijual dengan harga $%s USD. Apakah anda yakin ingin membeli nya ?",
+    "alert.buy_storage:confirm" : "Saya Yakin",
+    "alert.buy_storage:cancel" : "Tidak",
+
+    "alert.rent_storage:header" : "Halo %s 👋",
+    "alert.rent_storage:content" : "Harga sewa gudang ini adalah $%s USD / hari. Apakah anda ingin tetap menyewanya ?",
+    "alert.rent_storage:confirm" : "Iya",
+    "alert.rent_storage:cancel" : "Tidak",
+
+    "target.storage:label_buy" : "Beli Gudang",
+    "target.storage:label_rental" : "Sewa Gudang",
+    "target.storage:label_open" : "Buka Gudang",
+    "target.storage:label_manage" : "Kelola Gudang",
+
+    "notify.storage:player_not_enough_money" : "Uang mu tidak cukup (di butuhkan $%s USD)",
+    "notify.storage:storage_not_enough_money" : "Uang tidak cukup !",
+    "notify.storage:manage_info.money" : "Pemasukan uang dari hasil penyewaan gudang sebesar $%s",
+    
+    "context.storage:label.manage_money" : "Kelola Pemasukan",
+    "context.storage:label.open_storage" : "Buka Gudang",
+    "context.storage:label.storage_setting" : "Pengaturan Gudang",
+    "context.storage:manage_money.info" : "Total Pemasukan $%s",
+    "context.storage:manage_money.deposit" : "Simpan Uang",
+    "context.storage:manage_money.withdraw" : "Ambil Uang",
+    "context.storage:storage_setting.slots" : "Atur Slots",
+    "context.storage:storage_setting.weight" : "Atur Kapasitas",
+    "context.storage:storage_setting.label" : "Atur Label",
+    "context.storage:storage_setting.rent_price" : "Atur Biaya Sewa",
+    "context.storage:storage_setting.sale" : "Jual Gudang"
+}
