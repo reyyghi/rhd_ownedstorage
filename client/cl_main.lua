@@ -16,9 +16,9 @@ local registerNewStorage = function ( storageData )
         { type = 'number', label = locale('input.new_storage:rent_price'), default = 1000 },
         { type = 'checkbox', label = locale('input.new_storage:forsale_label') },
     })
-    
+
     if input then
-        
+
         local newData = {
             id = storageData.id,
             label = tostring(input[1]),
@@ -37,7 +37,7 @@ local registerNewStorage = function ( storageData )
             local price_input = lib.inputDialog(newData.label, {
                 { type = 'number', label = locale('input.new_storage:sale_price'), default = RHD.default['salePrice'], required = true },
             })
-            
+
             if price_input then
 
                 newData.salePrice = tonumber(price_input[1])
@@ -71,8 +71,8 @@ end
 
 RegisterNetEvent('rhd_os:createnNew', cerateNew)
 
-RegisterNetEvent('rhd_os:removeCurrentTarget', function( tId )
-    exports.ox_target:removeZone(Target[tId])
+RegisterNetEvent('rhd_os:removeStorage', function( tId )
+    RHD.Fungsi.removeTarget({ tID = Target[tId], tName = tId})
     RemoveBlip(SB[tId])
 end)
 
@@ -81,30 +81,39 @@ RegisterNetEvent('rhd_os:rhd_os:loadTarget', function( storageData )
     storageData = storageData or currentData
 
     currentData = storageData
-    
+
     if SB[storageData.id] then RemoveBlip(SB[storageData.id]) end
-    if Target[storageData.id] then exports.ox_target:removeZone(Target[storageData.id]) end
+    if Target[storageData.id] then RHD.Fungsi.removeTarget({ tID = Target[storageData.id], tName = storageData.id}) end
 
     local targetData = {
         coords = storageData.lokasi,
         radius = 0.5,
         debug = false,
+        name = storageData.id,
         options = {}
     }
 
     local sId, rId, sM, isRent, isForsale = RHD.Fungsi.storageInfo( storageData.id )
-
-    if storageData.owner ~= LocalPlayer.state.identifier then
+    if storageData.owner ~= Framework.cId() then
         if isRent then
             targetData.options[#targetData.options+1] = {
                 label = locale('target.storage:label_open'),
                 icon = 'fas fa-warehouse',
                 onSelect = function ()
-                    exports.ox_inventory:openInventory('stash', storageData.id)
+                    if RHD.inv == 'ox_inventory' then
+                        exports.ox_inventory:openInventory('stash', storageData.id)
+                    elseif RHD.inv == 'qb-inventory' then
+                        TriggerEvent("inventory:client:SetCurrentStash", storageData.id .. '_' .. Framework.cId())
+                        TriggerServerEvent('inventory:server:OpenInventory', 'stash', storageData.id .. '_' .. Framework.cId(), { maxweight = storageData.weight, slots = storageData.slots })
+                        
+                    else
+                        return error(locale('err.missing_inventory'))
+                    end
+                    TriggerServerEvent("InteractSound_SV:PlayOnSource", "StashOpen", 0.4)
                 end,
                 distance = 1.5
             }
-        elseif LocalPlayer.state.group ~= 'admin' then
+        elseif not Framework.myGroup( 'admin' ) then
             targetData.options[#targetData.options+1] = {
                 label = locale('target.storage:label_rental'),
                 icon = 'fas fa-warehouse',
@@ -120,7 +129,7 @@ RegisterNetEvent('rhd_os:rhd_os:loadTarget', function( storageData )
                         rentPrice *= tonumber(input[1])
 
                         local alert = lib.alertDialog({
-                            header = locale('alert.rent_storage:header', LocalPlayer.state.name),
+                            header = locale('alert.rent_storage:header', Framework.pName()),
                             content = locale('alert.rent_storage:content', lib.math.groupdigits(rentPrice)),
                             centered = true,
                             cancel = true,
@@ -131,11 +140,11 @@ RegisterNetEvent('rhd_os:rhd_os:loadTarget', function( storageData )
                         })
 
                         if alert == 'confirm' then
-                            if not RHD.Fungsi.moneyCheck( rentPrice ) then 
-                                return TriggerEvent('mn:shownotif', locale('notify.storage:player_not_enough_money', lib.math.groupdigits(rentPrice)), 'error')
+                            if not Framework.cekMoney( 'cash', rentPrice ) then 
+                                return RHD.Fungsi.notify(locale('notify.storage:player_not_enough_money', lib.math.groupdigits(rentPrice)), 'error', 8000)
                             end
         
-                            TriggerServerEvent('rhd_os:rentStorage', sId, rId, storageData)
+                            TriggerServerEvent('rhd_os:rentStorage', sId, rId, storageData, tonumber(input[1]))
                         end
                     end
 
@@ -145,7 +154,7 @@ RegisterNetEvent('rhd_os:rhd_os:loadTarget', function( storageData )
         end
     end
     
-    if storageData.owner == LocalPlayer.state.identifier or LocalPlayer.state.group == 'admin' then
+    if storageData.owner == Framework.cId() or Framework.myGroup( 'admin' ) then
         targetData.options[#targetData.options+1] = {
             label = locale('target.storage:label_manage'),
             icon = 'fas fa-warehouse',
@@ -159,7 +168,15 @@ RegisterNetEvent('rhd_os:rhd_os:loadTarget', function( storageData )
                             title = locale('context.storage:label.open_storage'),
                             icon = 'warehouse',
                             onSelect = function ()
-                                exports.ox_inventory:openInventory('stash', storageData.id)
+                                if RHD.inv == 'ox_inventory' then
+                                    exports.ox_inventory:openInventory('stash', storageData.id)
+                                elseif RHD.inv == 'qb-inventory' then
+                                    TriggerEvent("inventory:client:SetCurrentStash", storageData.id .. '_' .. Framework.cId())
+                                    TriggerServerEvent('inventory:server:OpenInventory', 'stash', storageData.id .. '_' .. Framework.cId(), { maxweight = storageData.weight, slots = storageData.slots })
+                                else
+                                    return error(locale('err.missing_inventory'))
+                                end
+                                TriggerServerEvent("InteractSound_SV:PlayOnSource", "StashOpen", 0.4)
                             end
                         },
                         {
@@ -188,7 +205,7 @@ RegisterNetEvent('rhd_os:rhd_os:loadTarget', function( storageData )
                                                 
                                                 if input then
                                                     if Money < tonumber(input[1]) then
-                                                        return TriggerEvent('mn:shownotif', locale('notify.storage:storage_not_enough_money'), 'error')
+                                                        return RHD.Fungsi.notify(locale('notify.storage:storage_not_enough_money'), 'error', 8000)
                                                     end
                                                     TriggerServerEvent('rhd_os:withdraw', sId, tonumber(input[1]))
                                                 end
@@ -284,7 +301,7 @@ RegisterNetEvent('rhd_os:rhd_os:loadTarget', function( storageData )
                                                 if input then
                                                     storageData.salePrice = tonumber(input[1])
                                                     storageData.forsale = true
-                                                    storageData.owner = LocalPlayer.state.identifier
+                                                    storageData.owner = Framework.cId()
                                                     TriggerServerEvent('rhd_os:setstorage', sId, storageData, true)
                                                 end
                                             end,
@@ -303,20 +320,20 @@ RegisterNetEvent('rhd_os:rhd_os:loadTarget', function( storageData )
         }
     end
 
-    if isForsale and LocalPlayer.state.group ~= 'admin' then
+    if isForsale and not Framework.myGroup( 'admin' ) then
         targetData.options[#targetData.options+1] = {
             label = locale('target.storage:label_buy'),
             icon = 'fas fa-warehouse',
             onSelect = function ()
                 local storagePrice = tonumber(storageData.salePrice)
 
-                if not RHD.Fungsi.moneyCheck( storagePrice ) then 
-                    return TriggerEvent('mn:shownotif', locale('notify.storage:player_not_enough_money', lib.math.groupdigits(storagePrice)), 'error')
+                if not Framework.cekMoney( 'cash', storagePrice ) then 
+                    return RHD.Fungsi.notify(locale('notify.storage:player_not_enough_money', lib.math.groupdigits(storagePrice)), 'error', 8000)
                 end
 
                 LocalPlayer.state.invBusy = true
                 local alert = lib.alertDialog({
-                    header = locale('alert.buy_storage:header', LocalPlayer.state.name),
+                    header = locale('alert.buy_storage:header', Framework.pName()),
                     content = locale('alert.buy_storage:content', lib.math.groupdigits(storagePrice)),
                     centered = true,
                     cancel = true,
@@ -335,7 +352,7 @@ RegisterNetEvent('rhd_os:rhd_os:loadTarget', function( storageData )
         }
     end
 
-    if LocalPlayer.state.group == 'admin' then
+    if Framework.myGroup( 'admin' ) then
         targetData.options[#targetData.options+1] = {
             label = locale('admin_target.storage:label_delete'),
             icon = 'fas fa-trash',
@@ -347,5 +364,5 @@ RegisterNetEvent('rhd_os:rhd_os:loadTarget', function( storageData )
     end
 
     SB[storageData.id] = RHD.Fungsi.createBlip( vec3(storageData.lokasi.x, storageData.lokasi.y, storageData.lokasi.z), storageData.forsale, storageData.label )
-    Target[storageData.id] = exports.ox_target:addSphereZone(targetData)
+    Target[storageData.id] = RHD.Fungsi.addTarget(targetData)
 end)
