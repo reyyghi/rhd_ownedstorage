@@ -89,7 +89,7 @@ end)
 RegisterNetEvent('rhd_os:withdraw', function( sId, amount )
     if RHD.Storage and #RHD.Storage > 0 then
         RHD.Storage[sId].money -= amount
-        exports.ox_inventory:AddItem(source, 'money', amount)
+        Framework.addMoney(source, 'cash', amount)
     end
 end)
 
