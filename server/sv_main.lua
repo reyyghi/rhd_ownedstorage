@@ -1,13 +1,3 @@
-local Esx = exports.es_extended:getSharedObject()
-
-RegisterNetEvent('esx:playerLoaded', function(player, xPlayer, isNew)
-    if RHD.Storage and #RHD.Storage > 0 then
-        for i=1, #RHD.Storage do
-            local storage = RHD.Storage[i]
-            xPlayer.triggerEvent('rhd_os:rhd_os:loadTarget', storage)
-        end
-    end
-end)
 
 RegisterNetEvent('rhd_os:registerNewStorage', function ( storageData )
     if RHD.Storage and #RHD.Storage > 0 then
@@ -20,13 +10,17 @@ RegisterNetEvent('rhd_os:registerNewStorage', function ( storageData )
     end
 
     RHD.Storage[#RHD.Storage+1] = storageData
-    exports.ox_inventory:RegisterStash(storageData.id, storageData.label, storageData.slots, storageData.weight, true)
+
+    if RHD.inv == 'ox_inventory' then
+        exports.ox_inventory:RegisterStash(storageData.id, storageData.label, storageData.slots, storageData.weight, true)
+    end
+
     TriggerClientEvent('rhd_os:rhd_os:loadTarget', -1, storageData)
 end)
 
-RegisterNetEvent('rhd_os:rentStorage', function( id, rentalId, data )
+RegisterNetEvent('rhd_os:rentStorage', function( id, rentalId, data, day )
 
-    local nextTime = os.time() + (3 * 24 * 60 * 60)
+    local nextTime = os.time() + (day * 24 * 60 * 60)
 
     if RHD.Storage[id].rentalData and #RHD.Storage[id].rentalData > 0 then
         if #RHD.Storage[id].rentalData[rentalId] then
@@ -34,56 +28,57 @@ RegisterNetEvent('rhd_os:rentStorage', function( id, rentalId, data )
         end
     end
 
+    print(Framework.ServercId(source))
     RHD.Storage[id].rentalData[#RHD.Storage[id].rentalData+1] = {
-        identifier = Player(source).state.identifier,
+        identifier = Framework.ServercId(source),
         date = os.date('%d-%m-%Y', nextTime)
     }
 
-    exports.ox_inventory:RemoveItem(source, 'money', tonumber(data.rentalPrice))
+    if RHD.inv == 'ox_inventory' then
+        exports.ox_inventory:RemoveItem(source, 'money', tonumber(data.rentalPrice))
+    else
+        Framework.removeMoney(source, 'cash', tonumber(data.rentalPrice))
+    end
+
     TriggerClientEvent('rhd_os:rhd_os:loadTarget', source, data)
 end)
 
 RegisterNetEvent('rhd_os:removeCurrentStorage', function( listId , stashId )
     if RHD.Storage and #RHD.Storage > 0 then
         table.remove(RHD.Storage, listId)
-        TriggerClientEvent('rhd_os:removeCurrentTarget', -1, stashId)
+        TriggerClientEvent('rhd_os:removeStorage', -1, stashId)
         
-        exports.ox_inventory:ClearInventory(stashId)
+        if RHD.inv == 'ox_inventory' then
+            exports.ox_inventory:ClearInventory(stashId)
+            MySQL.query('delete from ox_inventory where name = ?', {tostring(stashId)})
+        else
+            MySQL.query('delete from stashitems where stash like "%' .. stashId ..'_%"')
+        end
+
         print(stashId, 'Removed')
-        MySQL.query('delete from ox_inventory where name = ?', {tostring(stashId)})
     end
 end)
 
 RegisterNetEvent('rhd_os:buyStorage', function( sId, tData )
     if RHD.Storage and #RHD.Storage > 0 then
-        RHD.Storage[sId].owner = Player(source).state.identifier
+        RHD.Storage[sId].owner = Framework.ServercId(source)
         RHD.Storage[sId].forsale = false
 
-        tData.owner = Player(source).state.identifier
+        tData.owner = Framework.ServercId(source)
         tData.forsale = false
 
-        exports.ox_inventory:RemoveItem(source, 'money', tData.salePrice)
+        if RHD.inv == 'ox_inventory' then
+            exports.ox_inventory:RemoveItem(source, 'money', tonumber(tData.salePrice))
+        else
+            Framework.removeMoney(source, 'cash', tonumber(tData.salePrice))
+        end
 
         if tData.owner then
-            local playerOnline = Esx.GetPlayerFromIdentifier(tData.owner)
+            local playerOnline = Framework.getPlayerFromCid(tData.owner)
             if playerOnline and playerOnline ~= nil then
-                playerOnline.addAccountMoney('bank', tData.salePrice, '')
+                Framework.addMoney(source, 'bank', tData.salePrice)
             else
-                MySQL.query('select accounts from users where identifier like "%' .. tData.owner .. '%"', {}, function (accounts)
-                    if accounts[1] ~= nil then
-                        for k, v in pairs(accounts) do
-                            local money = json.decode(v.accounts)
-            
-                            local updateData = {
-                                money = money.money,
-                                bank = tonumber(tData.salePrice),
-                                black_money = money.black_money
-                            }
-                            
-                            MySQL.update('update users set accounts = ? where identifier = ?', {json.encode(updateData), tData.owner})
-                        end
-                    end
-                end)
+                Framework.addMoneyFromDB('bank', tData.salePrice)
             end
         end
 
@@ -101,8 +96,11 @@ end)
 RegisterNetEvent('rhd_os:setstorage', function( sId, storageData, refresh )
     if RHD.Storage and #RHD.Storage > 0 then
         RHD.Storage[sId] = storageData
-        exports.ox_inventory:RegisterStash(storageData.id, storageData.label, storageData.slots, storageData.weight, true)
-
+        
+        if RHD.inv == 'ox_inventory' then
+            exports.ox_inventory:RegisterStash(storageData.id, storageData.label, storageData.slots, storageData.weight, true)
+        end
+        
         if refresh then
             TriggerClientEvent('rhd_os:rhd_os:loadTarget', -1, storageData)
         end
@@ -110,7 +108,7 @@ RegisterNetEvent('rhd_os:setstorage', function( sId, storageData, refresh )
 end)
 
 --- Server Callback
-lib.callback.register('rhd_os:cb:getRentalData', function ( src )
+lib.callback.register('rhd_os:cb:getStorageData', function ( src )
     if RHD.Storage and #RHD.Storage > 0 then
         return RHD.Storage
     end
@@ -119,9 +117,9 @@ end)
 
 lib.callback.register('rhd_os:cb:cekRentalTime', function ( src, rentDate )
     if os.date('%d-%m-%Y') < rentDate then
-        return false
+        return true
     end
-    return true
+    return false
 end)
 
 
