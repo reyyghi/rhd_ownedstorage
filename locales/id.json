@@ -54,5 +54,9 @@
     "context.storage:storage_setting.weight" : "Atur Kapasitas",
     "context.storage:storage_setting.label" : "Atur Label",
     "context.storage:storage_setting.rent_price" : "Atur Biaya Sewa",
-    "context.storage:storage_setting.sale" : "Jual Gudang"
+    "context.storage:storage_setting.sale" : "Jual Gudang",
+    
+    "err.missing_inventory:client" : "Inventory tidak di dukung. Tolong hubungi developer untuk memperbaiki ini !",
+    "err.missing_inventory:server" : "Inventory tidak di dukung. Gunakan qb-inventory atau ox_inventory !",
+    "err.missing_target:client" : "Script target tidak di dukung. Tolong hubungi developer untuk memperbaiki ini !"
 }
