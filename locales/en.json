@@ -1,6 +1,6 @@
 {
     "admin_input:label" : "RHD STORAGE",
-    "admin_command:name:create.new_storage" : "create storage",
+    "admin_command:name:create.new_storage" : "createstorage",
     "admin_command:label:create.new_storage" : "Create New Storage",
     "admin_target.storage:label_delete" : "Delete Storage",
 
