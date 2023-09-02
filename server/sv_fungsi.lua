@@ -5,6 +5,14 @@ RHD.Fungsi.saveFile = function ()
     SaveResourceFile(GetCurrentResourceName(), 'data/storage.json', json.encode(RHD.Storage))
 end
 
+RHD.Fungsi.notify = function ( msg, type, duration )
+    lib.notify(source, {
+        description = msg,
+        type = type,
+        duration = duration
+    })
+end
+
 CreateThread(function()
     RHD.Storage = {}
     local loadFile = LoadResourceFile(GetCurrentResourceName(), 'data/storage.json')
@@ -22,7 +30,11 @@ CreateThread(function()
     if RHD.Storage and #RHD.Storage > 0 then
         for i=1, #RHD.Storage do
             local storage = RHD.Storage[i]
-            exports.ox_inventory:RegisterStash(storage.id, storage.label, storage.slots, storage.weight, true)
+            TriggerClientEvent('rhd_os:rhd_os:loadTarget', -1, storage)
+            
+            if Framework.ox_inventory() then
+                exports.ox_inventory:RegisterStash(storage.id, storage.label, storage.slots, storage.weight, true)
+            end
         end
     end
 end)
