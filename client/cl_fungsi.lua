@@ -15,7 +15,7 @@ RHD.Fungsi.getRandomStr = function ( length )
 end
 
 RHD.Fungsi.storageInfo = function ( sId, cB )
-    local storage = lib.callback.await('rhd_os:cb:getRentalData', false)
+    local storage = lib.callback.await('rhd_os:cb:getStorageData', false)
     if not storage then return end
 
     local sID, rID, sM, isRent, isForsale = 0, 0, 0, false, false
@@ -24,9 +24,11 @@ RHD.Fungsi.storageInfo = function ( sId, cB )
         if storage[s].id == sId then
             local rental = storage[s].rentalData
             for r=1, #rental do
-                if rental[r].identifier == LocalPlayer.state.identifier then
+                print(rental[r].identifier == Framework.cId())
+                if rental[r].identifier == tostring(Framework.cId()) then
                     rID = r
                     isRent = lib.callback.await('rhd_os:cb:cekRentalTime', false, rental[r].date)
+                    print(rID, isRent)
                 end
             end
             sID = s
@@ -35,11 +37,6 @@ RHD.Fungsi.storageInfo = function ( sId, cB )
         end
     end
     if cB then cB(sID, rID, sM, isRent, isForsale) else return sID, rID, sM, isRent, isForsale end
-end
-
-RHD.Fungsi.moneyCheck = function ( amount )
-    amount = amount or 1
-    return exports.ox_inventory:Search('count', 'money') >= amount
 end
 
 RHD.Fungsi.createBlip = function ( coords, sale, label )
@@ -53,6 +50,70 @@ RHD.Fungsi.createBlip = function ( coords, sale, label )
     AddTextComponentString(label)
     EndTextCommandSetBlipName(SB)
     return SB
+end
+
+RHD.Fungsi.removeTarget = function ( data )
+    if RHD.target == 'ox_target' then
+        exports.ox_target:removeZone(data.tID)
+    elseif RHD.target == 'qb-target' then
+        print(data.tName)
+        exports['qb-target']:RemoveZone(data.tName)
+    else
+        return
+    end
+end
+
+RHD.Fungsi.notify = function ( msg, type, duration )
+    lib.notify({
+        description = msg,
+        type = type,
+        duration = duration
+    })
+end
+
+RHD.Fungsi.addTarget = function ( data )
+    if RHD.target == 'ox_target' then
+        local tData = {
+            coords = data.coords,
+            radius = data.radius,
+            debug = data.debug,
+            options = {}
+        }
+
+        for i=1, #data.options do
+            tData.options[#tData.options+1] = {
+                label = data.options[i].label,
+                icon = data.options[i].icon,
+                onSelect = function ()
+                    data.options[i].onSelect()
+                end,
+            }
+        end
+
+        return exports.ox_target:addSphereZone(tData)
+    elseif RHD.target == 'qb-target' then
+        local tOptions = {
+            options = {},
+            distance = 1.5
+        }
+
+        for i=1, #data.options do
+            tOptions.options[#tOptions.options+1] = {
+                label = data.options[i].label,
+                icon = data.options[i].icon,
+                action = function ()
+                    data.options[i].onSelect()
+                end,
+            }
+        end
+
+        return exports['qb-target']:AddCircleZone(data.name, vector3(data.coords.x, data.coords.y, data.coords.z), data.radius, {
+            name = data.name,
+            debugPoly = data.debug,
+        }, tOptions)
+    else
+        return error(locale('err.missing_target:client'))
+    end
 end
 
 RHD.Fungsi.laserAktif = function ( data )
