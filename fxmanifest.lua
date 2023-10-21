@@ -21,6 +21,8 @@ server_scripts {
     'server/sv_*.lua'
 }
 
+ox_lib "locale"
+
 files {
     'locales/*.json',
 
