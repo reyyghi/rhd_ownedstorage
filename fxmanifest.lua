@@ -4,27 +4,28 @@ game 'gta5'
 atuhor 'Reyghita Hafizh & Della'
 lua54 'yes'
 
-client_scripts {
-    'bridge/**/cl_main.lua',
-    'client/cl_*.lua'
-}
-
 shared_scripts {
     '@ox_lib/init.lua',
     'bridge/shared.lua',
-    'shared/sh_*.lua'
+    'bridge/framework/*.lua',
+    'bridge/target/*.lua',
+    'bridge/inventory/*.lua',
+    'bridge/notify/*.lua',
 }
+
+client_scripts {
+    'client/cl_*.lua'
+}
+
 
 server_scripts {
     '@oxmysql/lib/MySQL.lua',
-    'bridge/**/sv_main.lua',
     'server/sv_*.lua'
 }
 
 ox_lib "locale"
 
 files {
-    'locales/*.json',
-
-    'data/storage.json'
+    'data/stash.lua',
+    'data/prop.lua',
 }
