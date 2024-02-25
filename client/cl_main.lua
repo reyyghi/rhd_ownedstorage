@@ -3,7 +3,7 @@ local sp = {}
 local stash = require 'data.stash'
 
 RegisterNetEvent('rhd_os:client:createstash', function()
-    local input = lib.inputDialog('Pembuatan Gudang', {
+    local input = lib.inputDialog('Stash Creator', {
         { type = 'input', label = 'Id', placeholder = 'gudang_baru', required = true, min = 1 },
         { type = 'input', label = 'Label', placeholder = 'Gudang Baru', required = true, min = 1},
         { type = 'number', label = 'Weight', required = true, min = 1 },
@@ -47,12 +47,12 @@ RegisterNetEvent('rhd_os:client:loadstashdata', function(stashData)
 
         if data.prop then
             lib.requestModel(data.prop, 1500)
-            sp[id] = CreateObject(data.prop, data.coords.x, data.coords.y, data.coords.z, false, false, false)
+            sp[id] = CreateObject(data.prop, data.coords.x, data.coords.y, data.coords.z + 1, false, false, false)
             PlaceObjectOnGroundProperly(sp[id])
             SetEntityHeading(sp[id],  data.coords.w)
             FreezeEntityPosition(sp[id], true)
 
-            data.coords.z += 1
+            data.coords = vec(data.coords.xy, data.coords.z + 0.5, data.coords.w)
         end
 
         RB.t.addTarget(id, {
@@ -79,9 +79,9 @@ CreateThread(function ()
 end)
 
 AddEventHandler('onResourceStop', function(resource)
-   if resource == GetCurrentResourceName() then
-      for id, entity in pairs(sp) do
-        DeleteEntity(entity)
-      end
-   end
+    if resource == GetCurrentResourceName() then
+        for id, entity in pairs(sp) do
+            DeleteEntity(entity)
+        end
+    end
 end)
