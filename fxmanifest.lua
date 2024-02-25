@@ -26,6 +26,8 @@ server_scripts {
 ox_lib "locale"
 
 files {
+    'config/perms.lua',
+    'config/command.lua',
     'data/stash.lua',
     'data/prop.lua',
 }
