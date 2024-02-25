@@ -2,6 +2,10 @@ Storage = {}
 
 local stash = require 'data.stash'
 
+function Storage.getData()
+    return stash
+end
+
 function Storage.save(stashData, cb)
     local newData = {}
     
