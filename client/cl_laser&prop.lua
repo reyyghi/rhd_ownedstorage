@@ -81,6 +81,17 @@ function Laser.start()
     return Citizen.Await(results)
 end
 
+local function reqModel(model, timeout)
+    model = type(model) == 'string' and joaat(model) or model
+    RequestModel(model)
+    if not HasModelLoaded(model) then
+        while not HasModelLoaded(model) do
+            RequestModel(model)
+            Wait(10)
+        end
+    end
+end
+
 function Placer.start()
     if PlacingObject then return end
 
@@ -96,7 +107,7 @@ function Placer.start()
     ]]
 
     lib.showTextUI(text)
-    lib.requestModel(object, 1500)
+    reqModel(object, 1500)
     CurrentModel = object
     CurrentObject = CreateObject(object, 1.0, 1.0, 1.0, false, false, false)
 
@@ -151,7 +162,7 @@ function Placer.start()
                 local newModel = propData[newIndex]
                 if newModel then
                     DeleteEntity(CurrentObject)
-                    lib.requestModel(newModel)
+                    reqModel(newModel)
                     local prop = CreateObject(newModel, 1.0, 1.0, 1.0, false, false, false)
                     SetEntityCollision(prop, false, false)
                     FreezeEntityPosition(prop, true)
@@ -168,7 +179,7 @@ function Placer.start()
                     local newModel = propData[newIndex]
                     if newModel then
                         DeleteEntity(CurrentObject)
-                        lib.requestModel(newModel)
+                        reqModel(newModel)
                         local prop = CreateObject(newModel, 1.0, 1.0, 1.0, false, false, false)
                         SetEntityCollision(prop, false, false)
                         FreezeEntityPosition(prop, true)
