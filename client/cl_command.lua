@@ -1,7 +1,9 @@
 local command = require 'config.command'
 
 CreateThread(function ()
-    TriggerEvent('chat:addSuggestions', command)
+    for _, data in pairs(command) do
+        TriggerEvent('chat:addSuggestion', ('/%s'):format(data.name), data.help)
+    end
 end)
 
 AddEventHandler('onResourceStop', function(resource)
