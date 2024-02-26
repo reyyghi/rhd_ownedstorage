@@ -18,8 +18,9 @@ function RB.t.addTarget(index, val)
                 label = td.label,
                 icon = td.icon,
                 onSelect = function ()
-                    td.func()
+                    return td.func()
                 end,
+                groups = td.groups,
                 distance = td.dist,
             }
         end
