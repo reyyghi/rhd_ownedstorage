@@ -10,9 +10,9 @@ RegisterCommand("migratestash", function (_)
 
         local rentIdentifier = {}
 
-        if oldStash.rentalData and #oldStash.rentalData > 0 then
-            for a=1, #oldStash.rentalData do
-                local oldrd = oldStash.rentalData[a]
+        if oldData.rentalData and #oldData.rentalData > 0 then
+            for a=1, #oldData.rentalData do
+                local oldrd = oldData.rentalData[a]
                 rentIdentifier[oldrd.identifier] = oldrd.date
             end
         end
